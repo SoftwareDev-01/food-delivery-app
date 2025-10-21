@@ -1,311 +1,315 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { FaLocationDot } from "react-icons/fa6";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from 'react-redux';
 import { IoIosSearch } from "react-icons/io";
 import { LuShoppingCart } from "react-icons/lu";
 import { RxCross2 } from "react-icons/rx";
-import { serverUrl } from "../App";
-import axios from "axios";
-import { setSearchItems, setShop, setUserData } from "../redux/userSlice";
-import { FiPlus } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { serverUrl } from '../App';
+import axios from 'axios';
+import { setSearchItems, setShop, setUserData } from '../redux/userSlice';
+import { FiPlus } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import { TbReceipt2 } from "react-icons/tb";
-import { motion, AnimatePresence } from "framer-motion";
-
-const primaryGradient = "linear-gradient(90deg, #ff512f 0%, #f09819 100%)"; // warm orange-red gradient
-const bgLight = "#fff9f6";
-const shadowColor = "rgba(255, 77, 45, 0.25)";
+import CitySelector from './CitySelector';
 
 function Nav() {
-  const { city, userData, cartItems, pendingOrdersCount } = useSelector(
-    (state) => state.user
-  );
-  const [showSearch, setShowSearch] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [input, setInput] = useState("");
+    const { city, userData, cartItems, pendingOrdersCount } = useSelector(state => state.user);
+    const [showSearch, setShowSearch] = useState(false);
+    const [showInfo, setShowInfo] = useState(false);
+    const [showCitySelector, setShowCitySelector] = useState(false);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [input, setInput] = useState("");
 
-  const handleLogOut = async () => {
-    try {
-      await axios.get(`${serverUrl}/api/auth/signout`, { withCredentials: true });
-      dispatch(setUserData(null));
-      dispatch(setShop(null));
-      navigate("/signin");
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    const handleLogOut = async () => {
+        try {
+            await axios.get(`${serverUrl}/api/auth/signout`, { withCredentials: true });
+            dispatch(setUserData(null));
+            dispatch(setShop(null));
+            navigate("/signin");
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
-  const handleSearchItems = async () => {
-    try {
-      const result = await axios.get(
-        `${serverUrl}/api/user/search-items?city=${city}&query=${input}`,
-        { withCredentials: true }
-      );
-      dispatch(setSearchItems(result.data));
-    } catch (error) {
-      dispatch(setSearchItems(null));
-      console.log(error);
-    }
-  };
+    const handleSearchItems = async () => {
+        try {
+            const result = await axios.get(
+                `${serverUrl}/api/user/search-items?city=${city}&query=${input}`,
+                { withCredentials: true }
+            );
+            dispatch(setSearchItems(result.data));
+        } catch (error) {
+            dispatch(setSearchItems(null));
+            console.log(error);
+        }
+    };
 
-  useEffect(() => {
-    if (input) {
-      handleSearchItems();
-    } else {
-      dispatch(setSearchItems(null));
-    }
-  }, [input]);
+    useEffect(() => {
+        if (input) {
+            handleSearchItems();
+        } else {
+            dispatch(setSearchItems(null));
+        }
+    }, [input]);
 
-  // Animation variants
-  const dropdownVariants = {
-    hidden: { opacity: 0, y: -10, pointerEvents: "none" },
-    visible: { opacity: 1, y: 0, pointerEvents: "auto" },
-  };
+    useEffect(() => {
+        setInput("");
+        dispatch(setSearchItems(null));
+    }, [city]);
 
-  const badgeBounce = {
-    animate: {
-      scale: [1, 1.3, 1],
-      transition: {
-        duration: 1.2,
-        repeat: Infinity,
-        repeatDelay: 3,
-      },
-    },
-  };
-
-  return (
-    <nav
-      className="w-full fixed top-0 z-[9999] bg-[#fff9f6] shadow-lg"
-      style={{ background: bgLight, boxShadow: `0 4px 15px ${shadowColor}` }}
-    >
-      <div className="max-w-[1300px] mx-auto flex items-center justify-between px-5 md:px-10 h-[80px] gap-5">
-        {/* Logo */}
-        <h1
-          className="text-3xl font-extrabold cursor-pointer select-none flex-shrink-0"
-          style={{
-            background: primaryGradient,
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-          onClick={() => navigate("/")}
-        >
-          Vingo
-        </h1>
-
-        {/* Desktop Search Box */}
-        {userData?.role === "user" && (
-          <div className="hidden md:flex md:flex-1 max-w-[600px] h-[50px] bg-white rounded-lg shadow-xl items-center gap-4 px-4">
-            <div className="flex items-center w-[30%] overflow-hidden gap-2 px-3 border-r-2 border-gray-300">
-              <FaLocationDot className="w-6 h-6 text-orange-500" />
-              <div className="truncate text-gray-700">{city || "Loading..."}</div>
-            </div>
-            <div className="flex items-center w-[70%] gap-2">
-              <IoIosSearch className="w-6 h-6 text-orange-500" />
-              <input
-                type="text"
-                placeholder="Search delicious food..."
-                className="w-full text-gray-700 outline-none"
-                onChange={(e) => setInput(e.target.value)}
-                value={input}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Mobile Search Toggle */}
-        {userData?.role === "user" && (
-          <div className="md:hidden flex items-center gap-2">
-            {!showSearch ? (
-              <IoIosSearch
-                className="w-7 h-7 text-orange-500 cursor-pointer hover:scale-110 transition-transform duration-200"
-                onClick={() => setShowSearch(true)}
-              />
-            ) : (
-              <RxCross2
-                className="w-7 h-7 text-orange-500 cursor-pointer hover:scale-110 transition-transform duration-200"
-                onClick={() => setShowSearch(false)}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Right Side Controls */}
-        <div className="flex items-center gap-4">
-          {/* Owner Role Buttons */}
-          {userData?.role === "owner" ? (
-            <>
-              {/* Add Food Item */}
-              <button
-                onClick={() => navigate("/additem")}
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 select-none"
-              >
-                <FiPlus size={18} />
-                Add Food Item
-              </button>
-              <button
-                onClick={() => navigate("/additem")}
-                className="flex md:hidden items-center justify-center p-2 rounded-full bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg hover:shadow-2xl transition-all duration-300 select-none"
-              >
-                <FiPlus size={22} />
-              </button>
-
-              {/* Pending Orders */}
-              <motion.div
-                className="hidden md:flex items-center gap-2 cursor-pointer relative px-4 py-2 rounded-lg bg-orange-100 text-red-600 font-semibold shadow-md select-none"
-                onClick={() => navigate("/pending-orders")}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <TbReceipt2 className="w-6 h-6" />
-                My Orders
-                <motion.span
-                  className="absolute -right-2 -top-2 text-xs font-bold text-white bg-red-500 rounded-full px-2 py-0.5 shadow-md"
-                  variants={badgeBounce}
-                  animate="animate"
+    return (
+        <>
+            <div className="w-full h-[90px] flex items-center justify-between md:justify-center gap-8 px-6 fixed top-0 z-[9999] bg-gradient-to-r from-[#fff9f6] to-[#ffebd3] backdrop-blur-sm shadow-xl overflow-visible transition-all duration-300">
+                {/* Logo */}
+                <h1
+                    className="text-4xl font-extrabold mb-2 text-[#ff4d2d] cursor-pointer hover:scale-110 transition-transform duration-200 select-none"
+                    onClick={() => navigate("/")}
+                    aria-label="Navigate to Home"
                 >
-                  {pendingOrdersCount}
-                </motion.span>
-              </motion.div>
+                    Vingo
+                </h1>
 
-              <motion.div
-                className="flex md:hidden items-center justify-center relative p-2 rounded-full bg-orange-100 text-red-600 select-none shadow-md"
-                onClick={() => navigate("/pending-orders")}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <TbReceipt2 className="w-6 h-6" />
-                <motion.span
-                  className="absolute -right-1 -top-1 text-[10px] font-bold text-white bg-red-500 rounded-full px-1.5 py-[1px] shadow-md"
-                  variants={badgeBounce}
-                  animate="animate"
-                >
-                  {pendingOrdersCount}
-                </motion.span>
-              </motion.div>
-            </>
-          ) : userData?.role === "deliveryBoy" ? (
-            <motion.button
-              onClick={() => navigate("/my-delivered-orders")}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 select-none"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              My Orders
-            </motion.button>
-          ) : (
-            <>
-              {/* User Cart */}
-              <motion.div
-                className="relative cursor-pointer select-none"
-                onClick={() => navigate("/cart")}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <LuShoppingCart className="w-7 h-7 text-orange-500" />
-                <motion.span
-                  className="absolute -right-3 -top-3 text-red-600 font-bold bg-red-200 rounded-full px-2 py-0.5 text-xs shadow-lg select-none"
-                  variants={badgeBounce}
-                  animate="animate"
-                >
-                  {cartItems?.length || 0}
-                </motion.span>
-              </motion.div>
-
-              {/* User Orders (desktop only) */}
-              {userData?.role === "user" && (
-                <motion.button
-                  onClick={() => navigate("/my-orders")}
-                  className="hidden md:block px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 select-none"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  My Orders
-                </motion.button>
-              )}
-            </>
-          )}
-
-          {/* Profile Icon */}
-          <div className="relative select-none">
-            <motion.div
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-orange-400 to-red-500 text-white text-lg shadow-xl font-semibold cursor-pointer"
-              onClick={() => setShowInfo((prev) => !prev)}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {userData?.fullName?.slice(0, 1) || "U"}
-            </motion.div>
-
-            {/* Profile dropdown */}
-            <AnimatePresence>
-              {showInfo && (
-                <motion.div
-                  className="fixed top-[80px] right-5 md:right-[10%] lg:right-[25%] w-44 bg-white shadow-2xl rounded-xl p-4 flex flex-col gap-3 z-[9999]"
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  variants={dropdownVariants}
-                  transition={{ duration: 0.25 }}
-                >
-                  <div className="text-lg font-semibold text-gray-800 select-text truncate">
-                    {userData?.fullName}
-                  </div>
-
-                  {/* Mobile: My Orders */}
-                  {userData?.role === "user" && (
-                    <div
-                      className="md:hidden text-red-600 font-semibold cursor-pointer hover:underline select-none"
-                      onClick={() => {
-                        setShowInfo(false);
-                        navigate("/my-orders");
-                      }}
-                    >
-                      My Orders
+                {/* Desktop Search Box */}
+                {userData?.role === "user" && (
+                    <div className="md:w-[65%] lg:w-[45%] h-[75px] bg-white/90 backdrop-blur-lg shadow-2xl rounded-2xl flex items-center gap-6 border border-white/30 hover:border-[#ff4d2d]/30 transition-all duration-300 relative px-6">
+                        <div className="flex items-center w-[32%] overflow-hidden gap-4 px-4 border-r-[2px] border-gray-300/60 relative">
+                            <FaLocationDot className="w-7 h-7 text-[#ff4d2d] animate-pulse flex-shrink-0" />
+                            <div className="w-[55%] truncate text-gray-700 font-semibold text-lg flex-shrink-0 pr-8">
+                                {city || "Select City"}
+                            </div>
+                            <button
+                                onClick={() => setShowCitySelector(true)}
+                                className="text-sm text-[#ff4d2d] font-semibold hover:underline absolute right-3"
+                                aria-label="Change City"
+                            >
+                                Change
+                            </button>
+                        </div>
+                        <div className="w-[68%] flex items-center gap-4 relative group">
+                            <IoIosSearch className="w-7 h-7 text-[#ff4d2d] group-hover:scale-110 transition-transform duration-200" />
+                            <input
+                                type="text"
+                                placeholder="Search delicious food..."
+                                className="px-5 py-3 text-gray-800 outline-none w-full bg-transparent placeholder:text-gray-400 text-lg rounded-lg transition-colors duration-200 focus:placeholder:text-transparent"
+                                onChange={(e) => setInput(e.target.value)}
+                                value={input}
+                                aria-label="Search food items"
+                            />
+                            {input && (
+                                <RxCross2
+                                    className="absolute right-5 w-5 h-5 text-gray-400 cursor-pointer hover:text-[#ff4d2d] transition-colors duration-200"
+                                    onClick={() => { setInput(""); }}
+                                    aria-label="Clear search input"
+                                />
+                            )}
+                        </div>
                     </div>
-                  )}
+                )}
 
-                  <div
-                    className="text-red-600 font-semibold cursor-pointer hover:underline select-none"
-                    onClick={handleLogOut}
-                  >
-                    Log Out
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
+                {/* Right Side Icons */}
+                <div className="flex items-center gap-8 relative">
+                    {/* Mobile search toggle */}
+                    {userData?.role === "user" && (
+                        !showSearch ? (
+                            <IoIosSearch
+                                className="w-7 h-7 text-[#ff4d2d] md:hidden cursor-pointer hover:scale-125 transition-transform duration-200"
+                                onClick={() => setShowSearch(true)}
+                                aria-label="Open search"
+                            />
+                        ) : (
+                            <RxCross2
+                                className="w-7 h-7 text-[#ff4d2d] md:hidden cursor-pointer hover:scale-125 transition-transform duration-200"
+                                onClick={() => setShowSearch(false)}
+                                aria-label="Close search"
+                            />
+                        )
+                    )}
 
-      {/* Mobile Search Bar Sliding Down */}
-      <AnimatePresence>
-        {showSearch && userData?.role === "user" && (
-          <motion.div
-            className="fixed top-[80px] left-0 right-0 z-[9998] mx-auto w-[95%] max-w-xl h-[60px] bg-white rounded-lg shadow-xl flex items-center gap-3 px-4"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex items-center w-[30%] overflow-hidden gap-2 px-3 border-r-2 border-gray-300">
-              <FaLocationDot className="w-6 h-6 text-orange-500" />
-              <div className="truncate text-gray-700">{city || "Loading..."}</div>
+                    {/* Role-Based UI */}
+                    {userData?.role === "owner" ? (
+                        <>
+                            <button
+                                onClick={() => navigate("/additem")}
+                                className="hidden md:flex items-center gap-3 px-5 py-3 cursor-pointer rounded-full bg-gradient-to-r from-[#ff4d2d]/20 to-[#ff8c42]/20 text-[#ff4d2d] font-semibold hover:from-[#ff4d2d]/30 hover:to-[#ff8c42]/30 shadow-lg transition-all duration-300"
+                                aria-label="Add Food Item"
+                            >
+                                <FiPlus size={18} />
+                                <span className="text-base">Add Food Item</span>
+                            </button>
+                            <button
+                                onClick={() => navigate("/additem")}
+                                className="flex md:hidden items-center justify-center p-4 cursor-pointer rounded-full bg-gradient-to-r from-[#ff4d2d]/20 to-[#ff8c42]/20 text-[#ff4d2d] hover:from-[#ff4d2d]/30 hover:to-[#ff8c42]/30 transition-all duration-300"
+                                aria-label="Add Food Item"
+                            >
+                                <FiPlus size={22} />
+                            </button>
+
+                            <div
+                                className="hidden md:flex items-center gap-3 cursor-pointer relative px-5 py-3 rounded-xl bg-gradient-to-r from-[#ff4d2d]/20 to-[#ff8c42]/20 text-[#ff4d2d] font-semibold hover:from-[#ff4d2d]/30 hover:to-[#ff8c42]/30 transition-all duration-300 shadow-lg"
+                                onClick={() => navigate("/pending-orders")}
+                                aria-label="My Orders"
+                            >
+                                <TbReceipt2 className="w-6 h-6" />
+                                <span className="text-base">My Orders</span>
+                                {pendingOrdersCount > 0 && (
+                                    <span className="absolute -right-3 -top-3 text-xs font-bold text-white bg-gradient-to-r from-[#ff4d2d] to-[#ff8c42] rounded-full px-2 py-[2px] animate-pulse shadow-lg">
+                                        {pendingOrdersCount}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div
+                                className="flex md:hidden items-center justify-center relative p-4 rounded-full bg-gradient-to-r from-[#ff4d2d]/20 to-[#ff8c42]/20 text-[#ff4d2d]"
+                                onClick={() => navigate("/pending-orders")}
+                                aria-label="My Orders"
+                            >
+                                <TbReceipt2 className="w-6 h-6" />
+                                {pendingOrdersCount > 0 && (
+                                    <span className="absolute -right-2 -top-2 text-[10px] font-bold text-white bg-gradient-to-r from-[#ff4d2d] to-[#ff8c42] rounded-full px-2 py-[1px] animate-pulse shadow-md">
+                                        {pendingOrdersCount}
+                                    </span>
+                                )}
+                            </div>
+                        </>
+                    ) : userData?.role === "deliveryBoy" ? (
+                        <button
+                            onClick={() => navigate("/my-delivered-orders")}
+                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4d2d]/20 to-[#ff8c42]/20 text-[#ff4d2d] text-base font-semibold hover:from-[#ff4d2d]/30 hover:to-[#ff8c42]/30 transition-all duration-300 shadow-lg"
+                            aria-label="My Orders"
+                        >
+                            My Orders
+                        </button>
+                    ) : (
+                        <>
+                            <div
+                                className="relative cursor-pointer group"
+                                onClick={() => navigate("/cart")}
+                                aria-label={`Cart with ${cartItems?.length || 0} items`}
+                            >
+                                <LuShoppingCart className="w-7 h-7 text-[#ff4d2d] group-hover:scale-110 transition-transform duration-200" />
+                                {cartItems?.length > 0 && (
+                                    <span className="absolute -right-2 -top-2 min-w-[22px] h-[22px] flex items-center justify-center text-xs font-bold text-white bg-gradient-to-r from-[#ff4d2d] to-[#ff8c42] rounded-full animate-bounce shadow-lg">
+                                        {cartItems.length}
+                                    </span>
+                                )}
+                            </div>
+
+                            {userData?.role === "user" && (
+                                <button
+                                    onClick={() => navigate("/my-orders")}
+                                    className="hidden md:block px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4d2d]/20 to-[#ff8c42]/20 text-[#ff4d2d] text-base font-semibold hover:from-[#ff4d2d]/30 hover:to-[#ff8c42]/30 transition-all duration-300 shadow-lg"
+                                    aria-label="My Orders"
+                                >
+                                    My Orders
+                                </button>
+                            )}
+                        </>
+                    )}
+
+                    {/* Profile icon */}
+                    <div className="relative overflow-visible">
+                        <div
+                            className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-[#ff4d2d] to-[#ff8c42] text-white text-xl shadow-xl font-bold cursor-pointer hover:scale-110 transition-transform duration-200 ring-4 ring-white/30 select-none"
+                            onClick={() => setShowInfo(prev => !prev)}
+                            aria-label="Toggle user info menu"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    setShowInfo(prev => !prev);
+                                }
+                            }}
+                        >
+                            {userData?.fullName?.slice(0, 1).toUpperCase()}
+                        </div>
+
+                        {showInfo && (
+                            <div className="fixed top-[90px] right-[20px] md:right-[12%] lg:right-[25%] w-[220px] bg-white/95 backdrop-blur-lg shadow-2xl rounded-3xl p-6 flex flex-col gap-6 z-[9999] border border-white/30 animate-in slide-in-from-top-2 duration-300">
+                                <div className="text-xl font-bold text-gray-800 truncate">
+                                    {userData?.fullName}
+                                </div>
+
+                                {userData?.role === "user" && (
+                                    <div
+                                        className="md:hidden text-[#ff4d2d] font-semibold cursor-pointer py-3 px-4 rounded-xl hover:bg-[#ff4d2d]/10 transition-colors duration-200 text-center"
+                                        onClick={() => {
+                                            setShowInfo(false);
+                                            navigate("/my-orders");
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                setShowInfo(false);
+                                                navigate("/my-orders");
+                                            }
+                                        }}
+                                    >
+                                        My Orders
+                                    </div>
+                                )}
+
+                                <div
+                                    className="text-[#ff4d2d] font-semibold cursor-pointer py-3 px-4 rounded-xl hover:bg-[#ff4d2d]/10 transition-colors duration-200 text-center"
+                                    onClick={handleLogOut}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            handleLogOut();
+                                        }
+                                    }}
+                                >
+                                    Log Out
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
-            <input
-              type="text"
-              placeholder="Search delicious food..."
-              className="w-[70%] text-gray-700 outline-none"
-              onChange={(e) => setInput(e.target.value)}
-              value={input}
-              autoFocus
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
-  );
+
+            {/* Mobile Search Box */}
+            {showSearch && userData?.role === "user" && (
+                <div className="w-[92%] h-[75px] bg-white/90 backdrop-blur-lg shadow-2xl rounded-2xl flex items-center gap-6 fixed left-[4%] top-[90px] border border-white/30 animate-in slide-in-from-top-2 duration-300 md:hidden relative px-6">
+                    <div className="flex items-center w-[35%] overflow-hidden gap-4 px-4 border-r-[2px] border-gray-300/60 relative">
+                        <FaLocationDot className="w-7 h-7 text-[#ff4d2d] animate-pulse flex-shrink-0" />
+                        <div className="w-[55%] truncate text-gray-700 font-semibold text-lg flex-shrink-0 pr-8">
+                            {city || "Select City"}
+                        </div>
+                        <button
+                            onClick={() => setShowCitySelector(true)}
+                            className="text-sm text-[#ff4d2d] font-semibold hover:underline absolute right-3"
+                            aria-label="Change City"
+                        >
+                            Change
+                        </button>
+                    </div>
+                    <div className="w-[65%] flex items-center gap-4 relative group">
+                        <IoIosSearch className="w-7 h-7 text-[#ff4d2d] group-hover:scale-110 transition-transform duration-200" />
+                        <input
+                            type="text"
+                            placeholder="Search delicious food..."
+                            className="px-5 py-3 text-gray-800 outline-none w-full bg-transparent placeholder:text-gray-400 text-lg rounded-lg transition-colors duration-200 focus:placeholder:text-transparent"
+                            onChange={(e) => setInput(e.target.value)}
+                            value={input}
+                            aria-label="Search food items"
+                        />
+                        {input && (
+                            <RxCross2
+                                className="absolute right-5 w-5 h-5 text-gray-400 cursor-pointer hover:text-[#ff4d2d] transition-colors duration-200"
+                                onClick={() => { setInput(""); }}
+                                aria-label="Clear search input"
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* City Selector Modal */}
+            <CitySelector isOpen={showCitySelector} onClose={() => setShowCitySelector(false)} />
+        </>
+    );
 }
 
 export default Nav;
