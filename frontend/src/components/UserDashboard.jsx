@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Nav from "./Nav";
 import { categories } from "../category";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import CategoryCard from "./categoryCard";
+import CategoryCard from "./CategoryCard";
 import FoodCard from "./FoodCard";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";

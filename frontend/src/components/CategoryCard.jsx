@@ -1,11 +1,6 @@
 import React, { memo } from "react";
 
-const CategoryCard = ({
-  image,
-  name = "Category",
-  onClick,
-  isLoading = false,
-}) => {
+const CategoryCardRoyal = ({ image, name = "Category", onClick, isLoading = false }) => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -24,12 +19,15 @@ const CategoryCard = ({
         relative shrink-0
         w-[120px] h-[120px]
         md:w-[180px] md:h-[180px]
-        rounded-2xl border-2 border-[#ff4d2d]
-        bg-white overflow-hidden
-        shadow-md hover:shadow-xl
-        transition-all duration-300
-        focus:outline-none focus:ring-2 focus:ring-[#ff4d2d]/60
-        disabled:opacity-60 disabled:cursor-not-allowed
+        rounded-3xl
+        bg-gradient-to-br from-[#2B0000] via-[#3D0A0A] to-[#4A0E0E]
+        border border-[#C9A227]/40
+        shadow-[0_6px_20px_rgba(201,162,39,0.25)]
+        hover:shadow-[0_8px_30px_rgba(201,162,39,0.45)]
+        overflow-hidden
+        transition-all duration-500 hover:scale-[1.07]
+        focus:outline-none focus:ring-2 focus:ring-[#C9A227]
+        disabled:opacity-50 disabled:cursor-not-allowed
       "
     >
       {/* Image */}
@@ -43,22 +41,24 @@ const CategoryCard = ({
           }}
           className="
             absolute inset-0 w-full h-full object-cover
-            transition-transform duration-300
+            transition-transform duration-500
             hover:scale-110
+            opacity-90
           "
         />
       ) : (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+        <div className="absolute inset-0 bg-[#3d0a0a]/60 animate-pulse" />
       )}
 
       {/* Label */}
       <div
         className="
           absolute bottom-0 left-0 w-full
-          bg-white/90 backdrop-blur
-          px-3 py-1
-          rounded-t-xl
-          text-center text-sm font-semibold text-gray-800
+          bg-[#190404]/60 backdrop-blur-lg
+          border-t border-[#C9A227]/40
+          px-3 py-2
+          text-center text-sm font-semibold tracking-wide
+          text-[#FFD37A]
         "
       >
         {name}
@@ -67,4 +67,4 @@ const CategoryCard = ({
   );
 };
 
-export default memo(CategoryCard);
+export default memo(CategoryCardRoyal);

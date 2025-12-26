@@ -4,9 +4,10 @@ import { FaMinus, FaPlus, FaTrash } from "react-icons/fa";
 import { updateQuantity, removeFromCart } from "../redux/userSlice";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-function CartPage() {
+
+function CartPageRoyal() {
   const dispatch = useDispatch();
-  const navigate=useNavigate()
+  const navigate = useNavigate();
   const { cartItems, totalAmount } = useSelector((state) => state.user);
 
   const handleIncrease = (id, currentQty) => {
@@ -24,62 +25,56 @@ function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fff9f6] flex justify-center p-6">
-        
-      <div className="w-full max-w-[800px]">
-        <div className="flex items-center gap-[20px] mb-6">
-         <div className='' onClick={()=>navigate("/")}>
-                                <MdKeyboardBackspace className='w-[25px] h-[25px] text-[#ff4d2d]'/>
-                               </div>
-        <h1 className="text-2xl font-bold  text-start">Your Cart</h1>
-</div>
+    <div className="min-h-screen bg-gradient-to-br from-[#2B0000] via-[#3D0A0A] to-[#4A0E0E] text-[#FFDFA8] flex justify-center p-6 pt-[120px]">
+      <div className="w-full max-w-[850px]">
+
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => navigate("/")}
+            className="p-2 rounded-full bg-[#C9A227]/30 hover:bg-[#C9A227]/50 text-black transition">
+            <MdKeyboardBackspace className="w-6 h-6" />
+          </button>
+          <h1 className="text-3xl font-bold text-[#FFD37A] drop-shadow-sm">Your Royal Cart</h1>
+        </div>
+
         {cartItems.length === 0 ? (
-          <p className="text-gray-500 text-lg text-center">Your cart is empty.</p>
+          <p className="text-center text-[#F6E6C2]/70 text-lg">Your cart is empty 👑</p>
         ) : (
           <>
-            <div className="space-y-4">
+            {/* Cart Items */}
+            <div className="space-y-5">
               {cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between bg-white p-4 rounded-xl shadow border"
-                >
-                  {/* Left Side: Image & Info */}
+                <div key={item.id}
+                  className="flex items-center justify-between
+                    bg-[#2B0000]/50 border border-[#C9A227]/40 rounded-2xl shadow-lg p-4">
+
+                  {/* Left */}
                   <div className="flex items-center gap-4">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-20 h-20 object-cover rounded-lg border"
-                    />
+                    <img src={item.image} alt={item.name}
+                      className="w-20 h-20 object-cover rounded-xl border border-[#C9A227]/40" />
                     <div>
-                      <h3 className="font-medium text-gray-800">{item.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        ₹{item.price} × {item.quantity}
-                      </p>
-                      <p className="font-bold text-gray-900">
-                        ₹{(item.price * item.quantity).toFixed(2)}
-                      </p>
+                      <h3 className="font-semibold text-[#FFDFA8]">{item.name}</h3>
+                      <p className="text-sm text-[#E8C56C]">₹{item.price} × {item.quantity}</p>
+                      <p className="text-lg font-bold text-[#FFD37A]">₹{(item.price * item.quantity).toFixed(2)}</p>
                     </div>
                   </div>
 
-                  {/* Right Side: Qty Controls & Remove */}
+                  {/* Right */}
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handleDecrease(item.id, item.quantity)}
-                      className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
-                    >
+                    <button onClick={() => handleDecrease(item.id, item.quantity)}
+                      className="p-2 bg-[#190404]/60 border border-[#C9A227]/30 rounded-full hover:bg-[#300707] transition">
                       <FaMinus size={12} />
                     </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      onClick={() => handleIncrease(item.id, item.quantity)}
-                      className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
-                    >
+
+                    <span className="text-[#FFDFA8] font-semibold min-w-[20px] text-center">{item.quantity}</span>
+
+                    <button onClick={() => handleIncrease(item.id, item.quantity)}
+                      className="p-2 bg-[#190404]/60 border border-[#C9A227]/30 rounded-full hover:bg-[#300707] transition">
                       <FaPlus size={12} />
                     </button>
-                    <button
-                      onClick={() => handleRemove(item.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200"
-                    >
+
+                    <button onClick={() => handleRemove(item.id)}
+                      className="p-2 bg-[#4A0E0E] text-[#FFD37A] border border-[#C9A227]/40 rounded-full hover:bg-red-900 transition">
                       <FaTrash size={12} />
                     </button>
                   </div>
@@ -87,17 +82,22 @@ function CartPage() {
               ))}
             </div>
 
-            {/* Total & Checkout */}
-            <div className="mt-6 bg-white p-4 rounded-xl shadow flex justify-between items-center border">
-              <h3 className="text-lg font-semibold">Total Amount</h3>
-              <span className="text-xl font-bold text-[#ff4d2d]">
+            {/* Total */}
+            <div className="mt-8 bg-[#2B0000]/60 border border-[#C9A227]/40 rounded-2xl p-4 shadow-xl
+              flex justify-between items-center">
+              <h3 className="text-xl font-semibold text-[#FFDFA8]">Total</h3>
+              <span className="text-2xl font-bold text-[#FFD37A] drop-shadow-sm">
                 ₹{totalAmount.toFixed(2)}
               </span>
             </div>
 
+            {/* Checkout */}
             <div className="mt-4 flex justify-end">
-              <button className="bg-[#ff4d2d] text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-[#e64526] transition" onClick={()=>navigate("/checkout")}>
-                Proceed to Checkout
+              <button
+                onClick={() => navigate("/checkout")}
+                className="px-8 py-3 rounded-xl bg-[#C9A227]/40 text-black font-semibold text-lg
+                  hover:bg-[#C9A27ıll]/50 border border-[#C9A227]/60 shadow-lg transition">
+                Proceed to Checkout 👑
               </button>
             </div>
           </>
@@ -107,4 +107,4 @@ function CartPage() {
   );
 }
 
-export default CartPage;
+export default CartPageRoyal;
