@@ -67,7 +67,7 @@ function Nav() {
                     onClick={() => navigate("/")}
                     aria-label="Navigate to Home"
                 >
-                    Vingo
+                    Eat With Me
                 </h1>
 
                 {/* Desktop Search Box */}
@@ -271,7 +271,7 @@ function Nav() {
 
             {/* Mobile Search Box */}
             {showSearch && userData?.role === "user" && (
-                <div className="w-[92%] h-[75px] bg-white/90 backdrop-blur-lg shadow-2xl rounded-2xl flex items-center gap-6 fixed left-[4%] top-[90px] border border-white/30 animate-in slide-in-from-top-2 duration-300 md:hidden relative px-6">
+                <div className="w-[92%] h-[75px] bg-white/90 backdrop-blur-lg shadow-2xl rounded-2xl flex items-center gap-6 left-[4%] top-[90px] border border-white/30 animate-in slide-in-from-top-2 duration-300 md:hidden relative px-6">
                     <div className="flex items-center w-[35%] overflow-hidden gap-4 px-4 border-r-[2px] border-gray-300/60 relative">
                         <FaLocationDot className="w-7 h-7 text-[#ff4d2d] animate-pulse flex-shrink-0" />
                         <div className="w-[55%] truncate text-gray-700 font-semibold text-lg flex-shrink-0 pr-8">
