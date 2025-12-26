@@ -1,21 +1,26 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import UserDashboard from '../components/userDashboard'
+import React from "react";
+import { useSelector } from "react-redux";
+import UserDashboard from "../components/UserDashboard";
+import OwnerDashboard from "../components/OwnerDashboard";
+import DeliveryBoy from "../components/DeliveryBoy";
+import Footer from "../components/Footer";
 
-import DeliveryBoy from '../components/deliveryBoy'
-import { FaUtensils } from "react-icons/fa";
-import OwnerDashboard from '../components/OwnerDashboard';
-import Footer from '../components/Footer';
+const roleComponentMap = {
+  user: UserDashboard,
+  owner: OwnerDashboard,
+  deliveryBoy: DeliveryBoy,
+};
+
 function Home() {
-    const {userData}=useSelector(state=>state.user)
+  const { userData } = useSelector((state) => state.user);
+  const RoleComponent = roleComponentMap[userData?.role];
+
   return (
-    <div className='w-[100vw] min-h-[100vh] pt-[100px] flex flex-col items-center bg-[#fff9f6]'>
-      {userData?.role=="user" && <UserDashboard/>}
-       {userData?.role=="owner" && <OwnerDashboard/>}
-         {userData?.role=="deliveryBoy" && <DeliveryBoy/>}
-      <Footer/>   
+    <div className="w-[100vw] min-h-[100vh] pt-[100px] flex flex-col items-center bg-[#fff9f6]">
+      {RoleComponent ? <RoleComponent /> : null}
+      <Footer />
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;

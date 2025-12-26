@@ -1,182 +1,163 @@
-import React, { useEffect } from "react";
-import Nav from "./Nav";
+import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FaUtensils, FaPen, FaPlus } from "react-icons/fa";
+import { motion } from "framer-motion";
+import Nav from "./Nav";
 import Footer from "./Footer";
 import OwnerFoodCard from "./OwnerFoodCard";
 import { setPendingOrdersCount } from "../redux/userSlice";
-import { motion } from "framer-motion";
+
+/* ---------------- Helpers ---------------- */
+const formatDate = (date) =>
+  new Date(date).toLocaleString();
+
+/* ---------------- Animations ---------------- */
+const fadeUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: "easeOut" },
+};
 
 function OwnerDashboard() {
-  const { shop, ownerPendingOrders } = useSelector((state) => state.user);
-  const navigate = useNavigate();
+  const { shop, ownerPendingOrders } = useSelector(
+    (state) => state.user
+  );
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
+  /* ---------------- Pending Orders Count ---------------- */
   useEffect(() => {
-    const pending = ownerPendingOrders.filter(
-      (order) => order.shopOrder.status === "pending"
+    const pendingCount = ownerPendingOrders.filter(
+      (o) => o.shopOrder.status === "pending"
+    ).length;
+
+    dispatch(setPendingOrdersCount(pendingCount));
+  }, [ownerPendingOrders, dispatch]);
+
+  /* ---------------- Memoized Shop Card ---------------- */
+  const ShopCard = useMemo(() => {
+    if (!shop) return null;
+
+    return (
+      <div className="relative w-full bg-softWhite rounded-3xl overflow-hidden border border-orange-200 shadow-lg hover:shadow-2xl transition-all">
+        <button
+          onClick={() => navigate("/editshop")}
+          aria-label="Edit Shop"
+          className="absolute top-5 right-5 bg-gradient-to-r from-primaryOrange to-darkOrange text-white p-3 rounded-full shadow-lg hover:brightness-110"
+        >
+          <FaPen size={20} />
+        </button>
+
+        <img
+          src={shop.image}
+          alt={shop.name}
+          loading="lazy"
+          className="w-full h-60 sm:h-72 object-cover"
+        />
+
+        <div className="p-6 space-y-3">
+          <h2 className="text-2xl font-bold text-coolGray">
+            {shop.name}
+          </h2>
+          <p className="text-primaryOrange font-semibold">
+            {shop.city}, {shop.state}
+          </p>
+          <p className="text-coolGray">{shop.address}</p>
+
+          <div className="text-xs text-lightGray mt-4 space-y-1">
+            <p>Created: {formatDate(shop.createdAt)}</p>
+            <p>Last Updated: {formatDate(shop.updatedAt)}</p>
+          </div>
+        </div>
+      </div>
     );
-    dispatch(setPendingOrdersCount(pending.length));
-  }, [ownerPendingOrders]);
+  }, [shop, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-lightPeach to-white flex flex-col items-center font-sans">
+    <div className="min-h-screen bg-gradient-to-b from-lightPeach to-white flex flex-col items-center">
       <Nav />
 
-      {/* No shop */}
+      {/* ---------------- No Shop ---------------- */}
       {!shop && (
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex justify-center items-center p-6 sm:p-10"
-        >
-          <div className="w-full max-w-md bg-softWhite shadow-2xl rounded-3xl p-8 border border-gray-200 hover:shadow-[0_12px_24px_rgba(255,77,45,0.25)] transition-shadow duration-400 cursor-pointer select-none">
-            <div className="flex flex-col items-center text-center space-y-5">
-              <motion.div
-                whileHover={{ scale: 1.2, rotate: 15 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <FaUtensils className="text-primaryOrange w-20 h-20 sm:w-24 sm:h-24" />
-              </motion.div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-coolGray drop-shadow-md">
-                Add Your Restaurant
-              </h2>
-              <p className="text-lightGray max-w-xs text-base sm:text-lg leading-relaxed">
-                Join our platform and reach thousands of hungry customers daily.
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate("/editshop")}
-                className="bg-gradient-to-r from-primaryOrange to-darkOrange text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-2xl transition-all duration-300"
-              >
-                Get Started
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Shop exists but no items */}
-      {shop && shop?.items?.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="w-full flex flex-col items-center gap-8 px-6 sm:px-12 max-w-4xl"
-        >
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-coolGray flex items-center gap-4 mt-10 select-none">
-            <FaUtensils className="text-primaryOrange text-4xl sm:text-5xl" />
-            Welcome to <span className="text-primaryOrange">{shop.name}</span>
-          </h1>
-
-          {/* Shop Card */}
-          <div className="relative w-full bg-softWhite rounded-3xl overflow-hidden border border-orange-200 shadow-lg hover:shadow-2xl transition-all duration-300">
-            <button
-              onClick={() => navigate("/editshop")}
-              aria-label="Edit Shop"
-              className="absolute top-5 right-5 bg-gradient-to-r from-primaryOrange to-darkOrange text-white p-3 rounded-full shadow-lg hover:brightness-110 transition-all select-none"
-            >
-              <FaPen size={20} />
-            </button>
-            <img
-              src={shop.image}
-              alt={shop.name}
-              className="w-full h-56 sm:h-72 object-cover rounded-t-3xl"
-              loading="lazy"
-            />
-            <div className="p-6 space-y-2">
-              <h2 className="text-2xl font-bold text-coolGray">{shop.name}</h2>
-              <p className="text-primaryOrange font-semibold">
-                {shop.city}, {shop.state}
-              </p>
-              <p className="text-coolGray">{shop.address}</p>
-              <div className="text-xs text-lightGray mt-4 space-y-1">
-                <p>Created: {new Date(shop.createdAt).toLocaleString()}</p>
-                <p>Last Updated: {new Date(shop.updatedAt).toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Add Item Section */}
-          <div className="w-full max-w-xl bg-softWhite rounded-3xl p-8 shadow-lg border border-orange-200 hover:shadow-2xl transition-all duration-300 text-center select-none">
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <FaUtensils className="text-primaryOrange text-5xl mx-auto mb-5" />
+        <motion.div {...fadeUp} className="p-10">
+          <div className="max-w-md bg-softWhite rounded-3xl p-8 shadow-2xl text-center border">
+            <motion.div whileHover={{ scale: 1.2, rotate: 15 }}>
+              <FaUtensils className="text-primaryOrange w-24 h-24 mx-auto" />
             </motion.div>
-            <h2 className="text-2xl font-bold text-coolGray mb-3">
-              Add Your Food Items
+
+            <h2 className="text-4xl font-extrabold text-coolGray mt-6">
+              Add Your Restaurant
             </h2>
-            <p className="text-lightGray mb-7 text-base sm:text-lg leading-relaxed">
-              Share your delicious creations with customers by adding them here.
+
+            <p className="text-lightGray mt-4">
+              Join our platform and reach thousands of hungry customers.
             </p>
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/additem")}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-primaryOrange to-darkOrange text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-2xl transition-all duration-300"
+              onClick={() => navigate("/editshop")}
+              className="mt-8 bg-gradient-to-r from-primaryOrange to-darkOrange text-white px-8 py-3 rounded-full font-semibold shadow-lg"
             >
-              <FaPlus size={20} /> Add Item
+              Get Started
             </motion.button>
           </div>
         </motion.div>
       )}
 
-      {/* Shop with items */}
-      {shop && shop?.items.length > 0 && (
+      {/* ---------------- Shop Exists ---------------- */}
+      {shop && (
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="w-full flex flex-col gap-8 items-center px-6 sm:px-12 max-w-5xl mb-12"
+          {...fadeUp}
+          className="w-full max-w-5xl px-6 flex flex-col gap-10 mt-10"
         >
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-coolGray flex items-center gap-4 mt-10 select-none">
+          <h1 className="text-4xl font-extrabold text-coolGray flex items-center gap-4">
             <FaUtensils className="text-primaryOrange text-5xl" />
-            Welcome to <span className="text-primaryOrange">{shop.name}</span>
+            Welcome to{" "}
+            <span className="text-primaryOrange">{shop.name}</span>
           </h1>
 
-          {/* Shop Card */}
-          <div className="relative w-full bg-softWhite rounded-3xl overflow-hidden border border-orange-200 shadow-lg hover:shadow-2xl transition-all duration-300">
-            <button
-              onClick={() => navigate("/editshop")}
-              aria-label="Edit Shop"
-              className="absolute top-5 right-5 bg-gradient-to-r from-primaryOrange to-darkOrange text-white p-3 rounded-full shadow-lg hover:brightness-110 transition-all select-none"
-            >
-              <FaPen size={20} />
-            </button>
-            <img
-              src={shop.image}
-              alt={shop.name}
-              className="w-full h-60 sm:h-72 object-cover rounded-t-3xl"
-              loading="lazy"
-            />
-            <div className="p-6 space-y-3">
-              <h2 className="text-2xl font-bold text-coolGray">{shop.name}</h2>
-              <p className="text-primaryOrange font-semibold">
-                {shop.city}, {shop.state}
-              </p>
-              <p className="text-coolGray">{shop.address}</p>
-              <div className="text-xs text-lightGray mt-4 space-y-1">
-                <p>Created: {new Date(shop.createdAt).toLocaleString()}</p>
-                <p>Last Updated: {new Date(shop.updatedAt).toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
+          {ShopCard}
 
-          {/* Food Items List */}
-          <div className="w-full flex flex-col gap-6 max-w-4xl">
-            {shop.items.map((item, idx) => (
-              <OwnerFoodCard key={idx} item={item} />
-            ))}
-          </div>
+          {/* ---------------- No Items ---------------- */}
+          {shop.items.length === 0 && (
+            <div className="max-w-xl mx-auto bg-softWhite rounded-3xl p-8 shadow-lg border text-center">
+              <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
+                <FaUtensils className="text-primaryOrange text-5xl mx-auto mb-4" />
+              </motion.div>
+
+              <h2 className="text-2xl font-bold text-coolGray">
+                Add Your Food Items
+              </h2>
+
+              <p className="text-lightGray mt-3">
+                Share your delicious creations with customers.
+              </p>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/additem")}
+                className="mt-6 inline-flex items-center gap-3 bg-gradient-to-r from-primaryOrange to-darkOrange text-white px-8 py-3 rounded-full font-semibold shadow-lg"
+              >
+                <FaPlus /> Add Item
+              </motion.button>
+            </div>
+          )}
+
+          {/* ---------------- Items List ---------------- */}
+          {shop.items.length > 0 && (
+            <div className="flex flex-col gap-6 mb-16">
+              {shop.items.map((item) => (
+                <OwnerFoodCard key={item._id} item={item} />
+              ))}
+            </div>
+          )}
         </motion.div>
       )}
 
-      
+      <Footer />
     </div>
   );
 }

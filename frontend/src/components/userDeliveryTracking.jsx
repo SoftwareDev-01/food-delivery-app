@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
+import React, { useEffect, useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import scooter from "../assets/scooter.png";
@@ -20,8 +20,18 @@ const customerIcon = new L.Icon({
   iconAnchor: [20, 40],
 });
 
+// Optional: Map flyTo effect
+const FlyToCenter = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.flyTo(center, map.getZoom());
+  }, [center, map]);
+  return null;
+};
+
 export default function UserDeliveryTracking({ orderId, userLocation, shopOrderId }) {
   const [deliveryLoc, setDeliveryLoc] = useState(null);
+  const intervalRef = useRef(null);
 
   // 🔹 Fetch delivery boy location every 5 seconds
   useEffect(() => {
@@ -32,8 +42,12 @@ export default function UserDeliveryTracking({ orderId, userLocation, shopOrderI
           { withCredentials: true }
         );
 
-        if (res.data.success && res.data.deliveryBoyLocation) {
-          setDeliveryLoc(res.data.deliveryBoyLocation);
+        const newLoc = res.data?.deliveryBoyLocation;
+        if (res.data.success && newLoc) {
+          // Update only if location changed
+          setDeliveryLoc((prev) =>
+            !prev || prev.lat !== newLoc.lat || prev.lng !== newLoc.lng ? newLoc : prev
+          );
         }
       } catch (err) {
         console.error("Error fetching delivery boy location:", err);
@@ -41,11 +55,16 @@ export default function UserDeliveryTracking({ orderId, userLocation, shopOrderI
     };
 
     fetchLocation();
-    const interval = setInterval(fetchLocation, 5000);
-    return () => clearInterval(interval);
+    intervalRef.current = setInterval(fetchLocation, 5000);
+    return () => clearInterval(intervalRef.current);
   }, [orderId, shopOrderId]);
 
-  if (!deliveryLoc) return <p className="text-center mt-10">Loading map...</p>;
+  if (!deliveryLoc)
+    return (
+      <div className="flex justify-center items-center mt-10">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primaryOrange"></div>
+      </div>
+    );
 
   const polylinePath = [
     [deliveryLoc.lat, deliveryLoc.lng],
@@ -62,17 +81,20 @@ export default function UserDeliveryTracking({ orderId, userLocation, shopOrderI
       <MapContainer center={center} zoom={14} style={{ height: "100%", width: "100%" }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {/* 🔹 Delivery boy marker */}
+        {/* Fly map to center on updates */}
+        <FlyToCenter center={center} />
+
+        {/* Delivery boy marker */}
         <Marker position={[deliveryLoc.lat, deliveryLoc.lng]} icon={deliveryBoyIcon}>
           <Popup>Delivery Boy</Popup>
         </Marker>
 
-        {/* 🔹 User marker */}
+        {/* User marker */}
         <Marker position={[userLocation.lat, userLocation.lng]} icon={customerIcon}>
           <Popup>Your Address</Popup>
         </Marker>
 
-        {/* 🔹 Route line */}
+        {/* Route line */}
         <Polyline positions={polylinePath} color="blue" weight={4} />
       </MapContainer>
     </div>

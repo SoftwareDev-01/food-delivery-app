@@ -7,45 +7,38 @@ import { FaMapMarkerAlt, FaUtensils, FaStoreAlt, FaArrowLeft } from "react-icons
 
 function ShopItems() {
   const { shopId } = useParams();
-  const [items, setItems] = useState([]);
-  const [shop, setShop] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ Fetch shop + items
-  const handleGetShopItems = async () => {
-    try {
-      const result = await axios.get(
-        `${serverUrl}/api/item/getitemsbyshop/${shopId}`,
-        { withCredentials: true }
-      );
-      setItems(result.data || []);
-
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-    const handleGetShop = async () => {
-    try {
-      const result = await axios.get(
-        `${serverUrl}/api/shop/getshopbyid/${shopId}`,
-        { withCredentials: true }
-      );
-    
-      setShop(result.data);
-  console.log(result.data)
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const [shop, setShop] = useState(null);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    handleGetShopItems();
-    handleGetShop()
+    const fetchShopData = async () => {
+      setLoading(true);
+      try {
+        const [itemsRes, shopRes] = await Promise.all([
+          axios.get(`${serverUrl}/api/item/getitemsbyshop/${shopId}`, { withCredentials: true }),
+          axios.get(`${serverUrl}/api/shop/getshopbyid/${shopId}`, { withCredentials: true }),
+        ]);
+
+        setItems(itemsRes.data || []);
+        setShop(shopRes.data || null);
+      } catch (error) {
+        console.error("Error fetching shop data:", error);
+      }
+      setLoading(false);
+    };
+
+    fetchShopData();
   }, [shopId]);
 
+  if (loading) {
+    return <p className="text-center mt-10 text-gray-500">Loading shop data...</p>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
       {/* 🔙 Back Button */}
       <button
         onClick={() => navigate(-1)}
@@ -59,16 +52,16 @@ function ShopItems() {
       {shop && (
         <div className="relative w-full h-64 md:h-80 lg:h-96">
           <img
-            src={shop.image || "https://via.placeholder.com/1200x400"}
-            alt={shop.name}
+            src={shop?.image || "https://via.placeholder.com/1200x400"}
+            alt={shop?.name || "Shop"}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/30 flex flex-col justify-center items-center text-center px-4">
             <FaStoreAlt className="text-white text-4xl mb-3 drop-shadow-md" />
             <h1 className="text-3xl md:text-5xl font-extrabold text-white drop-shadow-lg">
-              {shop.name}
+              {shop?.name}
             </h1>
-            {shop.description && (
+            {shop?.description && (
               <p className="text-gray-200 text-sm md:text-lg mt-3 max-w-2xl">
                 {shop.description}
               </p>
@@ -83,7 +76,7 @@ function ShopItems() {
           <div className="flex items-center justify-center gap-2 text-gray-600">
             <FaMapMarkerAlt className="w-5 h-5 text-red-500" />
             <p className="text-lg font-medium">
-              {shop.address || "Address not available"}
+              {shop?.address || "Address not available"}
             </p>
           </div>
         </div>
@@ -98,9 +91,9 @@ function ShopItems() {
 
         {items.length > 0 ? (
           <div className="flex flex-wrap justify-center gap-8">
-            {items.map((item, index) => (
+            {items.map((item) => (
               <div
-                key={index}
+                key={item._id}
                 className="transform transition duration-300 hover:scale-105"
               >
                 <FoodCard data={item} />
